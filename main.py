@@ -30,13 +30,17 @@ def split_video(video_path, timestamps_file, output_format="%02d - %s.mp4"):
     description = timestamps[start_time]
     output_filename = output_format % ((i + 1), description)
 
-    # Split video using ffmpeg
+    # Split video using ffmpeg https://stackoverflow.com/a/40244234/7728993
     command = [
         "ffmpeg",
-        "-i", video_path,
+        "-y", # Overwrite existing files.
+        "-loglevel", "warning", "-hide_banner", # Make ffmpeg quieter on the command line.
+        "-async", "1", # ¯\_(ツ)_/¯
         "-ss", start_time,
         "-to", end_time,
-        output_filename
+        "-i", video_path,
+        "-c", "copy",
+        output_filename,
     ]
     subprocess.run(command)
 
@@ -46,7 +50,7 @@ def get_video_duration(video_path: str):
   command = ["ffprobe", "-loglevel", "quiet", "-show_format", "-print_format", "json", video_path]
   result = subprocess.run(command, capture_output=True)
   data = json.loads(result.stdout)
-  return float(data['format']['duration'])
+  return data['format']['duration']
 
 
 if __name__ == "__main__":
